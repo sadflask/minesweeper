@@ -3,37 +3,56 @@ using UnityEngine.UI;
 using System.Collections;
 using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
-using System.Threading;
 
 public class Button : MonoBehaviour, IPointerClickHandler
 {
+    public AudioSource source;
+    public AudioClip explosion;
+    public AudioClip success;
+
     public GameManager gm;
     public bool mined = false;
     public ArrayList surroundingButtons = new ArrayList();
     public int x;
     public int y;
     public int surroundingMines = 0;
-    public Sprite zero, one, two, three, four, five, mine;
-    public bool clicked = false;
+    //Sprites to be used for the buttons.
+    public Sprite zero, one, two, three, four, five, six, seven, eight, mine;
     public Sprite flag;
-    public bool flagged = false;
     public Sprite button;
+    //Booleans to save the buttons current state.
+    public bool clicked = false;
+    public bool flagged = false;
+    //Variables to hold end of game state.
+    private bool passed;
+    private bool failed;
+    private float timeSinceEnd = 0;
 
+    void Awake()
+    {
+        source = GetComponent<AudioSource>();
+    }
+    //Checks for right clicks and toggles the flag.
     public void OnPointerClick(PointerEventData eventData)
     {
         if (eventData.button == PointerEventData.InputButton.Right)
         {
-            if (flagged)
+            //Only toggle the flag if the button has not been clicked.
+            if (!clicked)
             {
-                GetComponent<Image>().sprite = button;
+                if (flagged)
+                {
+                    GetComponent<Image>().sprite = button;
+                }
+                else
+                {
+                    GetComponent<Image>().sprite = flag;
+                }
+                flagged = !flagged;
             }
-            else
-            {
-                GetComponent<Image>().sprite = flag;
-            }
-            flagged = !flagged;
         }
     }
+    //Finds all the adjacent cells for the button.
     public void getSurroundingButtons()
     {
         gm = gameObject.transform.parent.GetComponent<Transform>().GetComponent<ButtonGenerator>().gm;
@@ -79,6 +98,7 @@ public class Button : MonoBehaviour, IPointerClickHandler
         }
 
     }
+    //Iterate through the list of surrounding buttons to see how many have mines.
     public void CalculateMines()
     {
         foreach (Button b in surroundingButtons)
@@ -86,17 +106,19 @@ public class Button : MonoBehaviour, IPointerClickHandler
             if (b.mined)
             {
                 surroundingMines++;
-                Debug.Log(surroundingMines);
             }
         }
     }
+    //Function triggered when button is clicked.
     public void Clicked()
     {
         if (!flagged)
         {
             if (mined)
             {
+                //Ends game if mine is clicked.
                 GetComponent<Image>().sprite = mine;
+                source.PlayOneShot(explosion);
                 gm.clearedButtons = 0;
                 foreach (Button b in gm.buttons)
                 {
@@ -105,7 +127,6 @@ public class Button : MonoBehaviour, IPointerClickHandler
                         b.Reveal();
                     }
                 }
-                SceneManager.LoadScene("Fail");
             }
             else
             {
@@ -116,7 +137,8 @@ public class Button : MonoBehaviour, IPointerClickHandler
                 }
                 if (gm.clearedButtons > 89)
                 {
-                    SceneManager.LoadScene("Pass");
+                    passed = true;
+                    source.PlayOneShot(success);
                 }
                 if (surroundingMines == 0)
                 {
@@ -148,16 +170,44 @@ public class Button : MonoBehaviour, IPointerClickHandler
                         case 5:
                             GetComponent<Image>().sprite = five;
                             break;
+                        case 6:
+                            GetComponent<Image>().sprite = six;
+                            break;
+                        case 7:
+                            GetComponent<Image>().sprite = seven;
+                            break;
+                        case 8:
+                            GetComponent<Image>().sprite = eight;
+                            break;
                     }
                 }
             }
         }
     }
+    //Executes at regular intervals.
+    void Update()
+    {
+        //Increment timer if end of game has been reached
+        if (passed || failed )
+        {
+            timeSinceEnd += Time.deltaTime;
+        }
+        if (timeSinceEnd>1)
+        {
+            if (passed)
+                SceneManager.LoadScene("Pass");
+            if (failed)
+                SceneManager.LoadScene("Fail");
+        }
+    }
+    //Reveals all the other squares if a mine has been clicked.
     public void Reveal()
     {
         if (mined)
         {
             GetComponent<Image>().sprite = mine;
+            source.PlayOneShot(explosion);
+            failed = true;
         }
         else
         {
