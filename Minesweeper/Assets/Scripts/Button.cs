@@ -4,7 +4,7 @@ using System.Collections;
 using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
 
-public class Button : MonoBehaviour, IPointerClickHandler
+public class Button : MonoBehaviour
 {
     public AudioSource source;
     public AudioClip explosion;
@@ -32,24 +32,21 @@ public class Button : MonoBehaviour, IPointerClickHandler
     {
         source = GetComponent<AudioSource>();
     }
-    //Checks for right clicks and toggles the flag.
-    public void OnPointerClick(PointerEventData eventData)
+    //Checks for flag clicks and toggles the flag.
+    public void ToggleFlag()
     {
-        if (eventData.button == PointerEventData.InputButton.Right)
+        //Only toggle the flag if the button has not been clicked.
+        if (!clicked)
         {
-            //Only toggle the flag if the button has not been clicked.
-            if (!clicked)
+            if (flagged)
             {
-                if (flagged)
-                {
-                    GetComponent<Image>().sprite = button;
-                }
-                else
-                {
-                    GetComponent<Image>().sprite = flag;
-                }
-                flagged = !flagged;
+                GetComponent<Image>().sprite = button;
             }
+            else
+            {
+                GetComponent<Image>().sprite = flag;
+            }
+            flagged = !flagged;
         }
     }
     //Finds all the adjacent cells for the button.
@@ -112,73 +109,79 @@ public class Button : MonoBehaviour, IPointerClickHandler
     //Function triggered when button is clicked.
     public void Clicked()
     {
-        if (!flagged)
+        if (gm.flagged)
         {
-            if (mined)
+            ToggleFlag();
+        }
+        else {
+            if (!flagged)
             {
-                //Ends game if mine is clicked.
-                GetComponent<Image>().sprite = mine;
-                source.PlayOneShot(explosion);
-                gm.clearedButtons = 0;
-                foreach (Button b in gm.buttons)
+                if (mined)
                 {
-                    if (!b.clicked)
-                    {
-                        b.Reveal();
-                    }
-                }
-            }
-            else
-            {
-                if (!clicked)
-                {
-                    gm.clearedButtons++;
-                    clicked = true;
-                }
-                if (gm.clearedButtons > 89)
-                {
-                    passed = true;
-                    source.PlayOneShot(success);
-                }
-                if (surroundingMines == 0)
-                {
-                    GetComponent<Image>().sprite = zero;
-                    foreach (Button b in surroundingButtons)
+                    //Ends game if mine is clicked.
+                    GetComponent<Image>().sprite = mine;
+                    source.PlayOneShot(explosion);
+                    gm.clearedButtons = 0;
+                    foreach (Button b in gm.buttons)
                     {
                         if (!b.clicked)
                         {
-                            b.Clicked();
+                            b.Reveal();
                         }
                     }
                 }
                 else
                 {
-                    switch (surroundingMines)
+                    if (!clicked)
                     {
-                        case 1:
-                            GetComponent<Image>().sprite = one;
-                            break;
-                        case 2:
-                            GetComponent<Image>().sprite = two;
-                            break;
-                        case 3:
-                            GetComponent<Image>().sprite = three;
-                            break;
-                        case 4:
-                            GetComponent<Image>().sprite = four;
-                            break;
-                        case 5:
-                            GetComponent<Image>().sprite = five;
-                            break;
-                        case 6:
-                            GetComponent<Image>().sprite = six;
-                            break;
-                        case 7:
-                            GetComponent<Image>().sprite = seven;
-                            break;
-                        case 8:
-                            GetComponent<Image>().sprite = eight;
-                            break;
+                        gm.clearedButtons++;
+                        clicked = true;
+                    }
+                    if (gm.clearedButtons > 89)
+                    {
+                        passed = true;
+                        source.PlayOneShot(success);
+                    }
+                    if (surroundingMines == 0)
+                    {
+                        GetComponent<Image>().sprite = zero;
+                        foreach (Button b in surroundingButtons)
+                        {
+                            if (!b.clicked)
+                            {
+                                b.Clicked();
+                            }
+                        }
+                    }
+                    else
+                    {
+                        switch (surroundingMines)
+                        {
+                            case 1:
+                                GetComponent<Image>().sprite = one;
+                                break;
+                            case 2:
+                                GetComponent<Image>().sprite = two;
+                                break;
+                            case 3:
+                                GetComponent<Image>().sprite = three;
+                                break;
+                            case 4:
+                                GetComponent<Image>().sprite = four;
+                                break;
+                            case 5:
+                                GetComponent<Image>().sprite = five;
+                                break;
+                            case 6:
+                                GetComponent<Image>().sprite = six;
+                                break;
+                            case 7:
+                                GetComponent<Image>().sprite = seven;
+                                break;
+                            case 8:
+                                GetComponent<Image>().sprite = eight;
+                                break;
+                        }
                     }
                 }
             }

@@ -10,7 +10,9 @@ public class GameManager : MonoBehaviour {
     public int[] minedButtons = new int[10];
     //The number of buttons that have been clicked.
     public int clearedButtons = 0;
-	
+    //Toggle for the flagging function.
+    public bool flagged;
+
     //Add mines to 10 of the buttons.
     public void mine()
     {
